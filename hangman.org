@@ -1,0 +1,212 @@
+* A simple hangman demo
+  - This is how I see the solution to a hangman exercise.
+  - I took up the challenge before seeing the python solution
+
+** Creating a list to produce _ _ _ _ _ _
+   
+   - I just replace the letter (from a word already generated) with a '_' by traversing the word.
+
+#+begin_src python
+    import random
+
+	word_list = random.choice(["mike", "cell-phone", "trash"])
+	global q
+	q = []
+	x = len(word_list)
+
+	for i in word_list:
+	    q.append('_')
+
+#+end_src
+
+
+
+** The program that traverses the list and replaces the '_' with a correctly guessed letter
+   - Using the i to iterate thought the list of chars
+   - I'm also using q[m] to move the index along with the loop, so if there's a match
+     the q[m] will be at the correct location to replace the '_' with the guessed letter.
+   - The if m <= x -1 is to correct an "off-by-one".
+
+
+  #+begin_src python
+
+    guess_user = input("Please guess a letter: ").lower()
+    m=0
+    for i in word_list:
+        if guess_user == i:
+            print(f"{i}")
+            q[m] = i
+            
+        # This is the index number to be used as a placeholder.                 
+        if m <= x - 1:
+           m += 1
+        else:
+            break
+    print(q)
+
+  #+end_src
+
+** As a side note, this is how a python developer solved this same problem
+
+   - Makes a lot more use of built-in functions.
+     - This is a feature python enthusiasts love about the language. 
+   
+  #+begin_src python
+    for position in range(len(chosen_word)):
+	letter = chosen_word[position]
+	if letter == guess:
+	    display[position] = letter
+  #+end_src
+
+* A check function
+  - This is a simple function to check if all the '_' have been filled.  If so, the game is over.
+  - If this check fails it'll return False and break the while loop, thus the game.
+  - With these two elements, the only thing missing is the MAN in hangman.
+    
+  #+begin_src python
+    def check(q):
+	for x in q:
+	    if x == '_':
+		return True
+  #+end_src
+
+
+* Cleaning up the code.
+  #+begin_src python
+
+    def word_loop(guess_user, m):
+	for i in word_list:
+	    if guess_user == i:
+		print(f"{i}")
+		q[m] = i
+    
+	    if m <= x - 1:
+	       m += 1
+  #+end_src
+ - This is the part where I'm starting to seperate the different chuncks of code into their own
+   functions in order to get a bigger view on the project as a whole.
+   - The *problem* I face now is that I need to figure out what the function returns.  Based on that return,
+     I'll know whether I trigger the "incorrect" function.
+
+     
+*** Because of the nature of the loop,
+    it'll iterate through each letter of the word, thus, I'll get True's and Falses coming back! because as soon as a guess is true, it'll cut the loop, or
+    I'll get a flood of falses for each false guess, there's no way to use that as a trigger for my "failed to guess" function.
+
+**** Solution
+     Therefore, I figured that I could make a separate list that'll store 0's and 1's based on each comparison in the if statement,
+     if a letter matches I store a 1.
+     
+     Then, all I need to know is if there was a match, or 1, in the if conditional.  Looping through this list, as long as one hit a "1", I
+     can return True, and not trigger the "failed to guess" function.
+
+ #+begin_src python
+def word_loop(guess_user, m):
+    handle = []
+    for i in word_list:
+        if guess_user == i:
+            print(f"{i}")
+            q[m] = i
+            handle.append('1') <-----
+        else:
+            handle.append('0') <-----
+            
+        
+        if m <= x - 1:
+           m += 1
+           
+    for y in handle: <----
+        if y == '1':
+            return True
+ #+end_src
+
+* The chances part
+  - This part isn't all that difficult.  The heavy lifting has already been solved!
+
+  #+begin_src python
+def wrong_word(chances):
+    print("You guess the wrong letter")
+    print(f"You have { chances } chances left")
+    if chances == 0:
+        print("game over!")
+        print(f" The word was { word_list }")
+  #+end_src
+
+* The final code
+  - Sort of looks like this.
+
+
+  #+begin_src python
+	import random
+
+	word_list = random.choice(["cell-phone", "mike", "gas"])
+	global q
+	q = []
+
+	global chances
+	chances = 6
+
+	global m
+	m = 0
+
+	x = len(word_list)
+
+	for i in word_list:
+	    q.append('_')
+    
+	def wrong_word(chances):
+	    print("###############################")
+	    print("You guess the wrong letter")
+	    print(f"You have { chances } chances left")
+	    if chances == 0:
+		print("=0=0=0=0=0=0=0=0=0=0=0=0=0=0=0")
+		print("game over!")
+		print(f" The word was { word_list }")
+		return False
+        
+    
+	def word_loop(guess_user, m):
+	    handle = []
+	    for i in word_list:
+		if guess_user == i:
+		    print(f"{i}")
+		    q[m] = i
+		    handle.append('1')
+		else:
+		    handle.append('0')
+            
+        
+		if m <= x - 1:
+		   m += 1
+           
+	    for y in handle:
+		if y == '1':
+		    return True
+
+	def check(q):
+	    for x in q:
+		if x == '_':
+		    return True
+
+	while check(q) is True:
+	    print("-----------------------------------------")
+	    print(f"Please guess a letter: \n{ q }")
+	    ,#+begin_export html
+
+	    ,#+end_export    guess_user = input("Please guess a letter: ").lower()
+	    processed = word_loop(guess_user, m)
+	    if processed == None:
+		chances -= 1
+		wrong_word(chances)
+            
+	print(q)        
+
+
+    
+	print("You guessed the word!")
+	print(q)
+
+
+  #+end_src
+
+  - There is some final touches to be made, but the overall functionality of the program works!
